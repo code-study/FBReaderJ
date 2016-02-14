@@ -257,8 +257,11 @@ public abstract class ZLTextView extends ZLTextViewBase {
 	public synchronized void onScrollingFinished(PageIndex pageIndex) {
 		switch (pageIndex) {
 			case current:
+                //current则不换页
 				break;
+
 			case previous:
+                //previous则换到上一页
 			{
 				final ZLTextPage swap = myNextPage;
 				myNextPage = myCurrentPage;
@@ -279,7 +282,9 @@ public abstract class ZLTextView extends ZLTextViewBase {
 				}
 				break;
 			}
+
 			case next:
+                //next则换到下页
 			{
 				final ZLTextPage swap = myPreviousPage;
 				myPreviousPage = myCurrentPage;

@@ -24,6 +24,9 @@ import android.widget.Toast;
 
 import org.geometerplus.zlibrary.core.resources.ZLResource;
 
+/**
+ * UI消息
+ */
 public abstract class UIMessageUtil {
 	public static void showMessageText(final Activity activity, final String text) {
 		activity.runOnUiThread(new Runnable() {
@@ -36,6 +39,7 @@ public abstract class UIMessageUtil {
 	public static void showErrorMessage(Activity activity, String resourceKey) {
 		showMessageText(
 			activity,
+			//实现类似于树形XML的效果，能够加载资源
 			ZLResource.resource("errorMessage").getResource(resourceKey).getValue()
 		);
 	}

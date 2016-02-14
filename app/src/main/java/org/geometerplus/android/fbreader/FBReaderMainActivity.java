@@ -32,96 +32,109 @@ import org.geometerplus.zlibrary.ui.android.view.AndroidFontUtil;
 
 import org.geometerplus.android.fbreader.dict.DictionaryUtil;
 
+/**
+ * 该类是FBReader的父类，实现功能如下：
+ * ·转屏判断
+ * ·亮度判断
+ * ·电量判断
+ * ·wakeLock
+ */
 public abstract class FBReaderMainActivity extends Activity {
-	public static final int REQUEST_PREFERENCES = 1;
-	public static final int REQUEST_CANCEL_MENU = 2;
-	public static final int REQUEST_DICTIONARY = 3;
+    public static final int REQUEST_PREFERENCES = 1;
+    public static final int REQUEST_CANCEL_MENU = 2;
+    public static final int REQUEST_DICTIONARY = 3;
 
-	private volatile SuperActivityToast myToast;
+    private volatile SuperActivityToast myToast;
 
-	@Override
-	protected void onCreate(Bundle saved) {
-		super.onCreate(saved);
-		//自定义捕获异常
-		Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler(this));
-	}
+    @Override
+    protected void onCreate(Bundle saved) {
+        super.onCreate(saved);
+        //自定义捕获异常
+        Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler(this));
+    }
 
-	@Override
-	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-		switch (requestCode) {
-			default:
-				super.onActivityResult(requestCode, resultCode, data);
-				break;
-			case REQUEST_DICTIONARY:
-				DictionaryUtil.onActivityResult(this, resultCode, data);
-				break;
-		}
-	}
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        switch (requestCode) {
+            default:
+                super.onActivityResult(requestCode, resultCode, data);
+                break;
+            case REQUEST_DICTIONARY:
+                DictionaryUtil.onActivityResult(this, resultCode, data);
+                break;
+        }
+    }
 
-	public ZLAndroidLibrary getZLibrary() {
-		return ((ZLAndroidApplication)getApplication()).library();
-	}
+    public ZLAndroidLibrary getZLibrary() {
+        return ((ZLAndroidApplication) getApplication()).library();
+    }
 
-	/* ++++++ SCREEN BRIGHTNESS ++++++ */
-	protected void setScreenBrightnessAuto() {
-		final WindowManager.LayoutParams attrs = getWindow().getAttributes();
-		attrs.screenBrightness = -1.0f;
-		getWindow().setAttributes(attrs);
-	}
+    /* ++++++ SCREEN BRIGHTNESS(屏幕亮度) ++++++ */
+    protected void setScreenBrightnessAuto() {
+        final WindowManager.LayoutParams attrs = getWindow().getAttributes();
+        attrs.screenBrightness = -1.0f;
+        getWindow().setAttributes(attrs);
+    }
 
-	public void setScreenBrightnessSystem(float level) {
-		final WindowManager.LayoutParams attrs = getWindow().getAttributes();
-		attrs.screenBrightness = level;
-		getWindow().setAttributes(attrs);
-	}
+    /**
+     *
+     * @param level 是一个0.0-1.0之间的一个float类型数值
+     */
+    public void setScreenBrightnessSystem(float level) {
+        final WindowManager.LayoutParams attrs = getWindow().getAttributes();
+        attrs.screenBrightness = level;
+        getWindow().setAttributes(attrs);
+    }
 
-	public float getScreenBrightnessSystem() {
-		final float level = getWindow().getAttributes().screenBrightness;
-		return level >= 0 ? level : .5f;
-	}
-	/* ------ SCREEN BRIGHTNESS ------ */
+    public float getScreenBrightnessSystem() {
+        final float level = getWindow().getAttributes().screenBrightness;
+        return level >= 0 ? level : .5f;
+    }
+    /* ------ SCREEN BRIGHTNESS(屏幕亮度) ------ */
 
-	/* ++++++ SUPER TOAST ++++++ */
-	public boolean isToastShown() {
-		final SuperActivityToast toast = myToast;
-		return toast != null && toast.isShowing();
-	}
 
-	public void hideToast() {
-		final SuperActivityToast toast = myToast;
-		if (toast != null && toast.isShowing()) {
-			myToast = null;
-			runOnUiThread(new Runnable() {
-				public void run() {
-					toast.dismiss();
-				}
-			});
-		}
-	}
 
-	public void showToast(final SuperActivityToast toast) {
-		hideToast();
-		myToast = toast;
-		// TODO: avoid this hack (accessing text style via option)
-		final int dpi = getZLibrary().getDisplayDPI();
-		final int defaultFontSize = dpi * 18 / 160;
-		final int fontSize = new ZLIntegerOption("Style", "Base:fontSize", defaultFontSize).getValue();
-		final int percent = new ZLIntegerRangeOption("Options", "ToastFontSizePercent", 25, 100, 90).getValue();
-		final int dpFontSize = fontSize * 160 * percent / dpi / 100;
-		toast.setTextSize(dpFontSize);
-		toast.setButtonTextSize(dpFontSize * 7 / 8);
+    /* ++++++ SUPER TOAST(提示) ++++++ */
+    public boolean isToastShown() {
+        final SuperActivityToast toast = myToast;
+        return toast != null && toast.isShowing();
+    }
 
-		final String fontFamily =
-			new ZLStringOption("Style", "Base:fontFamily", "sans-serif").getValue();
-		toast.setTypeface(AndroidFontUtil.systemTypeface(fontFamily, false, false));
+    public void hideToast() {
+        final SuperActivityToast toast = myToast;
+        if (toast != null && toast.isShowing()) {
+            myToast = null;
+            runOnUiThread(new Runnable() {
+                public void run() {
+                    toast.dismiss();
+                }
+            });
+        }
+    }
 
-		runOnUiThread(new Runnable() {
-			public void run() {
-				toast.show();
-			}
-		});
-	}
-	/* ------ SUPER TOAST ------ */
+    public void showToast(final SuperActivityToast toast) {
+        hideToast();
+        myToast = toast;
+        // TODO: avoid this hack (accessing text style via option)
+        final int dpi = getZLibrary().getDisplayDPI();
+        final int defaultFontSize = dpi * 18 / 160;
+        final int fontSize = new ZLIntegerOption("Style", "Base:fontSize", defaultFontSize).getValue();
+        final int percent = new ZLIntegerRangeOption("Options", "ToastFontSizePercent", 25, 100, 90).getValue();
+        final int dpFontSize = fontSize * 160 * percent / dpi / 100;
+        toast.setTextSize(dpFontSize);
+        toast.setButtonTextSize(dpFontSize * 7 / 8);
 
-	public abstract void hideDictionarySelection();
+        final String fontFamily =
+                new ZLStringOption("Style", "Base:fontFamily", "sans-serif").getValue();
+        toast.setTypeface(AndroidFontUtil.systemTypeface(fontFamily, false, false));
+
+        runOnUiThread(new Runnable() {
+            public void run() {
+                toast.show();
+            }
+        });
+    }
+	/* ------ SUPER TOAST(提示) ------ */
+
+    public abstract void hideDictionarySelection();
 }

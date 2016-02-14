@@ -113,6 +113,9 @@ public final class FBReader extends FBReaderMainActivity implements ZLApplicatio
     private volatile Book myBook;
 
     private RelativeLayout myRootView;
+    /**
+     * 翻页组件
+     */
     private ZLAndroidWidget myMainView;
 
     private volatile boolean myShowStatusBarFlag;
@@ -155,6 +158,13 @@ public final class FBReader extends FBReaderMainActivity implements ZLApplicatio
         }
     };
 
+    /**
+     * 打开图书
+     *
+     * @param intent
+     * @param action
+     * @param force
+     */
     private synchronized void openBook(Intent intent, final Runnable action, boolean force) {
         if (!force && myBook != null) {
             return;
@@ -231,6 +241,7 @@ public final class FBReader extends FBReaderMainActivity implements ZLApplicatio
         bindService(new Intent(this, DataService.class), DataConnection, DataService.BIND_AUTO_CREATE);
 
         final Config config = Config.Instance();
+        //ConfigShadow
         config.runOnConnect(new Runnable() {
             public void run() {
                 config.requestAllValuesForGroup("Options");
@@ -267,7 +278,7 @@ public final class FBReader extends FBReaderMainActivity implements ZLApplicatio
 
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, myShowStatusBarFlag ? 0 : WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
-        //弹窗
+        //添加3个popup到FBreaderApp
         if (myFBReaderApp.getPopupById(TextSearchPopup.ID) == null) {
             //内容查找后，显示的操作
             new TextSearchPopup(myFBReaderApp);
@@ -498,6 +509,7 @@ public final class FBReader extends FBReaderMainActivity implements ZLApplicatio
 
         final ZLAndroidLibrary zlibrary = getZLibrary();
 
+        //检查屏幕大小是否符合，不符重开activity
         Config.Instance().runOnConnect(new Runnable() {
             public void run() {
                 final boolean showStatusBar = zlibrary.ShowStatusBarOption.getValue();
@@ -552,20 +564,20 @@ public final class FBReader extends FBReaderMainActivity implements ZLApplicatio
 
         public void run() {
             final TipsManager manager = new TipsManager(Paths.systemInfo(FBReader.this));
+
             switch (manager.requiredAction()) {
                 case Initialize:
-                    startActivity(new Intent(
-                            TipsActivity.INITIALIZE_ACTION, null, FBReader.this, TipsActivity.class
-                    ));
+                    startActivity(new Intent(TipsActivity.INITIALIZE_ACTION, null, FBReader.this, TipsActivity.class));
                     break;
+
                 case Show:
-                    startActivity(new Intent(
-                            TipsActivity.SHOW_TIP_ACTION, null, FBReader.this, TipsActivity.class
-                    ));
+                    startActivity(new Intent(TipsActivity.SHOW_TIP_ACTION, null, FBReader.this, TipsActivity.class));
                     break;
+
                 case Download:
                     manager.startDownloading();
                     break;
+
                 case None:
                     break;
             }
@@ -579,10 +591,12 @@ public final class FBReader extends FBReaderMainActivity implements ZLApplicatio
         myStartTimer = true;
         Config.Instance().runOnConnect(new Runnable() {
             public void run() {
+
+                //同步数据
                 SyncOperations.enableSync(FBReader.this, myFBReaderApp.SyncOptions);
 
-                final int brightnessLevel =
-                        getZLibrary().ScreenBrightnessLevelOption.getValue();
+                final int brightnessLevel = getZLibrary().ScreenBrightnessLevelOption.getValue();
+
                 if (brightnessLevel != 0) {
                     getViewWidget().setScreenBrightness(brightnessLevel);
                 } else {
@@ -604,7 +618,9 @@ public final class FBReader extends FBReaderMainActivity implements ZLApplicatio
             }
         });
 
+        //注册电池电量监听
         registerReceiver(myBatteryInfoReceiver, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+
         IsPaused = false;
         myResumeTimestamp = System.currentTimeMillis();
         if (OnResumeAction != null) {
@@ -626,6 +642,7 @@ public final class FBReader extends FBReaderMainActivity implements ZLApplicatio
             });
             return;
         } else if (myOpenBookIntent != null) {
+            //打开图书
             final Intent intent = myOpenBookIntent;
             myOpenBookIntent = null;
             getCollection().bindToService(this, new Runnable() {
@@ -991,6 +1008,11 @@ public final class FBReader extends FBReaderMainActivity implements ZLApplicatio
     @Override
     public void showErrorMessage(String key) {
         UIMessageUtil.showErrorMessage(this, key);
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
     }
 
     @Override

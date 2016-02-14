@@ -20,43 +20,47 @@
 package org.geometerplus.zlibrary.core.view;
 
 public interface ZLViewEnums {
-	public enum PageIndex {
-		previous, current, next;
 
-		public PageIndex getNext() {
-			switch (this) {
-				case previous:
-					return current;
-				case current:
-					return next;
-				default:
-					return null;
-			}
-		}
+    /**
+     * current，pervious, next ，分别代表当前页面，前方页面，后方页面
+     */
+    public enum PageIndex {
+        previous, current, next;
 
-		public PageIndex getPrevious() {
-			switch (this) {
-				case next:
-					return current;
-				case current:
-					return previous;
-				default:
-					return null;
-			}
-		}
-	}
+        public PageIndex getNext() {
+            switch (this) {
+                case previous:
+                    return current;
+                case current:
+                    return next;
+                default:
+                    return null;
+            }
+        }
 
-	public enum Direction {
-		leftToRight(true), rightToLeft(true), up(false), down(false);
+        public PageIndex getPrevious() {
+            switch (this) {
+                case next:
+                    return current;
+                case current:
+                    return previous;
+                default:
+                    return null;
+            }
+        }
+    }
 
-		public final boolean IsHorizontal;
+    public enum Direction {
+        leftToRight(true), rightToLeft(true), up(false), down(false);
 
-		Direction(boolean isHorizontal) {
-			IsHorizontal = isHorizontal;
-		}
-	}
+        public final boolean IsHorizontal;
 
-	public enum Animation {
-		none, curl, slide, slideOldStyle, shift
-	}
+        Direction(boolean isHorizontal) {
+            IsHorizontal = isHorizontal;
+        }
+    }
+
+    public enum Animation {
+        none, curl, slide, slideOldStyle, shift
+    }
 }

@@ -19,47 +19,53 @@
 
 package org.geometerplus.zlibrary.ui.android.library;
 
-import java.io.*;
-
 import android.app.Activity;
-import android.content.*;
+import android.content.ActivityNotFoundException;
+import android.content.Context;
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Process;
 
-import org.geometerplus.zlibrary.ui.android.error.BugReportActivity;
 import org.geometerplus.android.fbreader.api.FBReaderIntents;
+import org.geometerplus.zlibrary.ui.android.error.BugReportActivity;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
+
+/**
+ * 自己捕获异常，并处理，当发生无法捕捉的异常
+ */
 public class UncaughtExceptionHandler implements Thread.UncaughtExceptionHandler {
-	private final Context myContext;
+    private final Context myContext;
 
-	public UncaughtExceptionHandler(Context context) {
-		myContext = context;
-	}
+    public UncaughtExceptionHandler(Context context) {
+        myContext = context;
+    }
 
-	@Override
-	public void uncaughtException(Thread thread, Throwable exception) {
-		final StringWriter stackTrace = new StringWriter();
-		exception.printStackTrace(new PrintWriter(stackTrace));
-		System.err.println(stackTrace);
+    @Override
+    public void uncaughtException(Thread thread, Throwable exception) {
+        final StringWriter stackTrace = new StringWriter();
+        exception.printStackTrace(new PrintWriter(stackTrace));
+        System.err.println(stackTrace);
 
-		Intent intent = new Intent(
-			FBReaderIntents.Action.CRASH,
-			new Uri.Builder().scheme(exception.getClass().getSimpleName()).build()
-		);
-		intent.setPackage(FBReaderIntents.DEFAULT_PACKAGE);
-		try {
-			myContext.startActivity(intent);
-		} catch (ActivityNotFoundException e) {
-			intent = new Intent(myContext, BugReportActivity.class);
-			intent.putExtra(BugReportActivity.STACKTRACE, stackTrace.toString());
-			myContext.startActivity(intent);
-		}
+        //发送错误到FixBooksDirectoryActivity;开启一个activity用于处理和显示页面
+        Intent intent = new Intent(FBReaderIntents.Action.CRASH, new Uri.Builder().scheme(exception.getClass().getSimpleName()).build());
 
-		if (myContext instanceof Activity) {
-			((Activity)myContext).finish();
-		}
+        intent.setPackage(FBReaderIntents.DEFAULT_PACKAGE);
+        try {
+            myContext.startActivity(intent);
+        } catch (ActivityNotFoundException e) {
+            //如果进不去，则跳转到手动提交bug页面
+            intent = new Intent(myContext, BugReportActivity.class);
+            intent.putExtra(BugReportActivity.STACKTRACE, stackTrace.toString());
+            myContext.startActivity(intent);
+        }
 
-		Process.killProcess(Process.myPid());
-		System.exit(10);
-	}
+        if (myContext instanceof Activity) {
+            ((Activity) myContext).finish();
+        }
+
+        Process.killProcess(Process.myPid());
+        System.exit(10);
+    }
 }

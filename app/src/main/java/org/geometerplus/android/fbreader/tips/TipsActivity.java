@@ -32,6 +32,9 @@ import org.geometerplus.zlibrary.ui.android.R;
 import org.geometerplus.fbreader.Paths;
 import org.geometerplus.fbreader.tips.*;
 
+/**
+ * 提示对话框
+ */
 public class TipsActivity extends Activity {
 	public static final String INITIALIZE_ACTION = "android.fbreader.action.tips.INITIALIZE";
 	public static final String SHOW_TIP_ACTION = "android.fbreader.action.tips.SHOW_TIP";

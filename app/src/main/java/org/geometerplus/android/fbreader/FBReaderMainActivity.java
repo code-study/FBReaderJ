@@ -42,6 +42,7 @@ public abstract class FBReaderMainActivity extends Activity {
 	@Override
 	protected void onCreate(Bundle saved) {
 		super.onCreate(saved);
+		//自定义捕获异常
 		Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler(this));
 	}
 

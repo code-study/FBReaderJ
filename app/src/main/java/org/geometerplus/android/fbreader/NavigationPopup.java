@@ -35,6 +35,9 @@ import org.geometerplus.zlibrary.ui.android.R;
 import org.geometerplus.fbreader.bookmodel.TOCTree;
 import org.geometerplus.fbreader.fbreader.FBReaderApp;
 
+/**
+ * 快速翻看
+ */
 final class NavigationPopup extends ZLApplication.PopupPanel {
 	final static String ID = "NavigationPopup";
 

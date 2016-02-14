@@ -28,6 +28,9 @@ import org.geometerplus.zlibrary.core.resources.ZLResource;
 import org.geometerplus.fbreader.fbreader.ActionCode;
 import org.geometerplus.fbreader.fbreader.FBReaderApp;
 
+/**
+ * 内容查找后，显示的操作
+ */
 final class TextSearchPopup extends PopupPanel implements View.OnClickListener {
 	final static String ID = "TextSearchPopup";
 

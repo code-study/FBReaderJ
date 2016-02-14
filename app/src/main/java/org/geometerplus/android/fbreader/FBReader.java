@@ -89,6 +89,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * 主界面，入口
+ */
 public final class FBReader extends FBReaderMainActivity implements ZLApplicationWindow {
     public static final int RESULT_DO_NOTHING = RESULT_FIRST_USER;
     public static final int RESULT_REPAINT = RESULT_FIRST_USER + 1;
@@ -242,10 +245,12 @@ public final class FBReader extends FBReaderMainActivity implements ZLApplicatio
         final ZLAndroidLibrary zlibrary = getZLibrary();
         myShowStatusBarFlag = zlibrary.ShowStatusBarOption.getValue();
 
+        //隐藏标题
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.main);
         myRootView = (RelativeLayout) findViewById(R.id.root_view);
         myMainView = (ZLAndroidWidget) findViewById(R.id.main_view);
+        //按键会打开本地搜索
         setDefaultKeyMode(DEFAULT_KEYS_SEARCH_LOCAL);
 
         myFBReaderApp = (FBReaderApp) FBReaderApp.Instance();
@@ -260,21 +265,23 @@ public final class FBReader extends FBReaderMainActivity implements ZLApplicatio
 
         myFBReaderApp.setExternalFileOpener(new ExternalFileOpener(this));
 
-        getWindow().setFlags(
-                WindowManager.LayoutParams.FLAG_FULLSCREEN,
-                myShowStatusBarFlag ? 0 : WindowManager.LayoutParams.FLAG_FULLSCREEN
-        );
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, myShowStatusBarFlag ? 0 : WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
+        //弹窗
         if (myFBReaderApp.getPopupById(TextSearchPopup.ID) == null) {
+            //内容查找后，显示的操作
             new TextSearchPopup(myFBReaderApp);
         }
         if (myFBReaderApp.getPopupById(NavigationPopup.ID) == null) {
+            //快速翻看
             new NavigationPopup(myFBReaderApp);
         }
         if (myFBReaderApp.getPopupById(SelectionPopup.ID) == null) {
+            //长按文本，显示的文本框
             new SelectionPopup(myFBReaderApp);
         }
 
+        //操作action
         myFBReaderApp.addAction(ActionCode.SHOW_LIBRARY, new ShowLibraryAction(this, myFBReaderApp));
         myFBReaderApp.addAction(ActionCode.SHOW_PREFERENCES, new ShowPreferencesAction(this, myFBReaderApp));
         myFBReaderApp.addAction(ActionCode.SHOW_BOOK_INFO, new ShowBookInfoAction(this, myFBReaderApp));
@@ -306,10 +313,13 @@ public final class FBReader extends FBReaderMainActivity implements ZLApplicatio
         myFBReaderApp.addAction(ActionCode.SET_SCREEN_ORIENTATION_SENSOR, new SetScreenOrientationAction(this, myFBReaderApp, ZLibrary.SCREEN_ORIENTATION_SENSOR));
         myFBReaderApp.addAction(ActionCode.SET_SCREEN_ORIENTATION_PORTRAIT, new SetScreenOrientationAction(this, myFBReaderApp, ZLibrary.SCREEN_ORIENTATION_PORTRAIT));
         myFBReaderApp.addAction(ActionCode.SET_SCREEN_ORIENTATION_LANDSCAPE, new SetScreenOrientationAction(this, myFBReaderApp, ZLibrary.SCREEN_ORIENTATION_LANDSCAPE));
+
+        //是否支持横竖屏
         if (getZLibrary().supportsAllOrientations()) {
             myFBReaderApp.addAction(ActionCode.SET_SCREEN_ORIENTATION_REVERSE_PORTRAIT, new SetScreenOrientationAction(this, myFBReaderApp, ZLibrary.SCREEN_ORIENTATION_REVERSE_PORTRAIT));
             myFBReaderApp.addAction(ActionCode.SET_SCREEN_ORIENTATION_REVERSE_LANDSCAPE, new SetScreenOrientationAction(this, myFBReaderApp, ZLibrary.SCREEN_ORIENTATION_REVERSE_LANDSCAPE));
         }
+
         myFBReaderApp.addAction(ActionCode.OPEN_WEB_HELP, new OpenWebHelpAction(this, myFBReaderApp));
         myFBReaderApp.addAction(ActionCode.INSTALL_PLUGINS, new InstallPluginsAction(this, myFBReaderApp));
 
@@ -336,20 +346,56 @@ public final class FBReader extends FBReaderMainActivity implements ZLApplicatio
         }
     }
 
+    /**
+     * 是每次在display Menu之前，都会去调用，
+     * 只要按一次Menu按鍵，就会调用一次,
+     * 所以可以在这里动态的改变menu。
+     *
+     * @param menu
+     * @return
+     */
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
         setStatusBarVisibility(true);
+
+        //设置menu
         setupMenu(menu);
 
         return super.onPrepareOptionsMenu(menu);
     }
 
+    /**
+     * 只会调用一次，他只会在Menu显示之前去调用一次，之后就不会在去调用
+     *
+     * @param menu
+     * @return
+     */
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        super.onCreateOptionsMenu(menu);
+        //设置menu
+        setupMenu(menu);
+
+        return true;
+    }
+
+    /**
+     * 每次菜单被关闭时调用
+     *
+     * @param menu
+     */
     @Override
     public void onOptionsMenuClosed(Menu menu) {
         super.onOptionsMenuClosed(menu);
         setStatusBarVisibility(false);
     }
 
+    /**
+     * 菜单项被点击时调用，也就是菜单项的监听方法。
+     *
+     * @param item
+     * @return
+     */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         setStatusBarVisibility(false);
@@ -803,15 +849,19 @@ public final class FBReader extends FBReaderMainActivity implements ZLApplicatio
      * @param menu
      */
     private void setupMenu(Menu menu) {
+        //获取配置的语言
         final String menuLanguage = ZLResource.getLanguageOption().getValue();
+
         if (menuLanguage.equals(myMenuLanguage)) {
             return;
         }
+
         myMenuLanguage = menuLanguage;
 
         menu.clear();
         //添加menu
         fillMenu(menu, MenuData.topLevelNodes());
+
         synchronized (myPluginActions) {
             int index = 0;
             for (PluginApi.ActionInfo info : myPluginActions) {
@@ -822,15 +872,6 @@ public final class FBReader extends FBReaderMainActivity implements ZLApplicatio
         }
 
         refresh();
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        super.onCreateOptionsMenu(menu);
-
-        setupMenu(menu);
-
-        return true;
     }
 
     protected void onPluginNotFound(final Book book) {
@@ -847,14 +888,24 @@ public final class FBReader extends FBReaderMainActivity implements ZLApplicatio
         });
     }
 
+    /**
+     * 设置状态栏显示
+     *
+     * @param visible
+     */
     private void setStatusBarVisibility(boolean visible) {
         final ZLAndroidLibrary zlibrary = getZLibrary();
+
         if (DeviceType.Instance() != DeviceType.KINDLE_FIRE_1ST_GENERATION && !myShowStatusBarFlag) {
+
             if (visible) {
+                //window非全屏显示
                 getWindow().addFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
             } else {
+                //取消window非全屏显示
                 getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
             }
+
         }
     }
 
@@ -1023,7 +1074,7 @@ public final class FBReader extends FBReaderMainActivity implements ZLApplicatio
         exception.printStackTrace(new PrintWriter(stackTrace));
         intent.putExtra(ErrorKeys.STACKTRACE, stackTrace.toString());
         /*
-		if (exception instanceof BookReadingException) {
+        if (exception instanceof BookReadingException) {
 			final ZLFile file = ((BookReadingException)exception).File;
 			if (file != null) {
 				intent.putExtra("file", file.getPath());

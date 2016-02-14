@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <org.geometerplus.android.fbreader.SimplePopupWindow
 	xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:tools="http://schemas.android.com/tools"
 	android:id="@+id/selection_panel"
 	android:layout_width="wrap_content"
 	android:layout_height="wrap_content"
 	android:layout_alignParentBottom="true"
 	android:layout_centerHorizontal="true"
 	android:visibility="gone"
+	tools:visibility="visible"
 	android:focusable="false"
 >
 	<FrameLayout

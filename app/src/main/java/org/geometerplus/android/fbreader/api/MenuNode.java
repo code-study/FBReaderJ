@@ -22,6 +22,9 @@ package org.geometerplus.android.fbreader.api;
 import java.io.Serializable;
 import java.util.ArrayList;
 
+/**
+ * 菜单节点
+ */
 public abstract class MenuNode implements Cloneable, Serializable {
 	public static final long serialVersionUID = 42L;
 

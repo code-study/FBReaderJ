@@ -28,6 +28,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * 菜单数据
+ */
 public abstract class MenuData {
     private static List<MenuNode> ourNodes;
 

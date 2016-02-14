@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <org.geometerplus.android.fbreader.SimplePopupWindow
 	xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:tools="http://schemas.android.com/tools"
 	android:id="@+id/search_panel"
 	android:layout_width="wrap_content"
 	android:layout_height="wrap_content"
@@ -12,6 +13,7 @@
 	android:paddingRight="15dp"
 	android:background="@drawable/panel"
 	android:visibility="gone"
+	tools:visibility="visible"
 	android:focusable="false"
 >
 	<LinearLayout

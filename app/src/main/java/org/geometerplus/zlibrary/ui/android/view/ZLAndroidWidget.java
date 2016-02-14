@@ -50,7 +50,7 @@ import java.util.concurrent.Executors;
  * 阅读翻页
  */
 public class ZLAndroidWidget extends MainView implements ZLViewWidget, View.OnLongClickListener {
-    public final ExecutorService PrepareService = Executors.newSingleThreadExecutor();
+    public final ExecutorService prepareService = Executors.newSingleThreadExecutor();
 
     private final Paint myPaint = new Paint();
 
@@ -313,7 +313,7 @@ public class ZLAndroidWidget extends MainView implements ZLViewWidget, View.OnLo
         drawFooter(canvas, null);
         post(new Runnable() {
             public void run() {
-                PrepareService.execute(new Runnable() {
+                prepareService.execute(new Runnable() {
                     public void run() {
                         final ZLView view = ZLApplication.Instance().getCurrentView();
                         final ZLAndroidPaintContext context = new ZLAndroidPaintContext(
@@ -346,9 +346,13 @@ public class ZLAndroidWidget extends MainView implements ZLViewWidget, View.OnLo
         return true;
     }
 
+    /**
+     * 长点击
+     */
     private class LongClickRunnable implements Runnable {
         @Override
         public void run() {
+            //长点击和短点击的区分
             if (performLongClick()) {
                 myLongClickPerformed = true;
             }
@@ -367,6 +371,9 @@ public class ZLAndroidWidget extends MainView implements ZLViewWidget, View.OnLo
         postDelayed(myPendingLongClickRunnable, 2 * ViewConfiguration.getLongPressTimeout());
     }
 
+    /**
+     * 短点击
+     */
     private class ShortClickRunnable implements Runnable {
         @Override
         public void run() {
@@ -380,6 +387,9 @@ public class ZLAndroidWidget extends MainView implements ZLViewWidget, View.OnLo
     private volatile ShortClickRunnable myPendingShortClickRunnable;
 
     private volatile boolean myPendingPress;
+    /**
+     * 判断是否为双击
+     */
     private volatile boolean myPendingDoubleTap;
     private int myPressedX, myPressedY;
     private boolean myScreenIsTouched;
@@ -407,27 +417,57 @@ public class ZLAndroidWidget extends MainView implements ZLViewWidget, View.OnLo
         int y = (int) event.getY();
 
         final ZLView view = ZLApplication.Instance().getCurrentView();
+
         switch (event.getAction()) {
+
             case MotionEvent.ACTION_CANCEL:
                 myPendingDoubleTap = false;
                 myPendingPress = false;
                 myScreenIsTouched = false;
                 myLongClickPerformed = false;
+
                 if (myPendingShortClickRunnable != null) {
                     removeCallbacks(myPendingShortClickRunnable);
                     myPendingShortClickRunnable = null;
                 }
+
                 if (myPendingLongClickRunnable != null) {
                     removeCallbacks(myPendingLongClickRunnable);
                     myPendingLongClickRunnable = null;
                 }
+
                 view.onFingerEventCancelled();
+
                 break;
+
+
+            case MotionEvent.ACTION_DOWN:
+                //点击下去，首先判断是否有短点击（之前）
+                // 如果有，则去除，否则发送延迟消息判断是否为长点击
+                if (myPendingShortClickRunnable != null) {
+                    removeCallbacks(myPendingShortClickRunnable);
+                    myPendingShortClickRunnable = null;
+                    myPendingDoubleTap = true;
+                } else {
+                    postLongClickRunnable();
+                    myPendingPress = true;
+                }
+
+                //记录按下位置，设置触摸标识为true
+                myScreenIsTouched = true;
+                myPressedX = x;
+                myPressedY = y;
+
+                break;
+
             case MotionEvent.ACTION_UP:
+                //判断是否为双击
                 if (myPendingDoubleTap) {
                     view.onFingerDoubleTap(x, y);
+
                 } else if (myLongClickPerformed) {
                     view.onFingerReleaseAfterLongPress(x, y);
+
                 } else {
                     if (myPendingLongClickRunnable != null) {
                         removeCallbacks(myPendingLongClickRunnable);
@@ -446,30 +486,21 @@ public class ZLAndroidWidget extends MainView implements ZLViewWidget, View.OnLo
                         view.onFingerRelease(x, y);
                     }
                 }
+
                 myPendingDoubleTap = false;
                 myPendingPress = false;
                 myScreenIsTouched = false;
                 break;
-            case MotionEvent.ACTION_DOWN:
-                if (myPendingShortClickRunnable != null) {
-                    removeCallbacks(myPendingShortClickRunnable);
-                    myPendingShortClickRunnable = null;
-                    myPendingDoubleTap = true;
-                } else {
-                    postLongClickRunnable();
-                    myPendingPress = true;
-                }
-                myScreenIsTouched = true;
-                myPressedX = x;
-                myPressedY = y;
-                break;
+
             case MotionEvent.ACTION_MOVE: {
+                //判断是否移动
                 final int slop = ViewConfiguration.get(getContext()).getScaledTouchSlop();
-                final boolean isAMove =
-                        Math.abs(myPressedX - x) > slop || Math.abs(myPressedY - y) > slop;
+                final boolean isAMove = Math.abs(myPressedX - x) > slop || Math.abs(myPressedY - y) > slop;
+
                 if (isAMove) {
                     myPendingDoubleTap = false;
                 }
+
                 if (myLongClickPerformed) {
                     view.onFingerMoveAfterLongPress(x, y);
                 } else {
